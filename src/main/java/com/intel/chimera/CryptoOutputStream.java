@@ -21,7 +21,13 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
 import java.util.Properties;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.ShortBufferException;
 
 import com.google.common.base.Preconditions;
 import com.intel.chimera.crypto.Cipher;
@@ -270,21 +276,35 @@ public class CryptoOutputStream extends OutputStream implements
     inBuffer.position(padding); // Set proper position for input data.
 
     Utils.calculateIV(initIV, counter, iv);
-    cipher.init(Cipher.ENCRYPT_MODE, key, iv);
+    try {
+      cipher.init(Cipher.ENCRYPT_MODE, key, iv);
+    } catch (InvalidKeyException | InvalidAlgorithmParameterException e) {
+      throw new IOException(e);
+    }
     cipherReset = false;
   }
 
   private void encryptBuffer(ByteBuffer out)
       throws IOException {
     int inputSize = inBuffer.remaining();
-    int n = cipher.update(inBuffer, out);
+    int n;
+    try {
+      n = cipher.update(inBuffer, out);
+    } catch (ShortBufferException e) {
+      throw new IOException(e);
+    }
     if (n < inputSize) {
       /**
        * Typically code will not get here. Cipher#update will consume all
        * input data and put result in outBuffer.
        * Cipher#doFinal will reset the cipher context.
        */
-      cipher.doFinal(inBuffer, outBuffer);
+      try {
+        cipher.doFinal(inBuffer, outBuffer);
+      } catch (ShortBufferException | IllegalBlockSizeException
+          | BadPaddingException e) {
+        throw new IOException(e);
+      }
       cipherReset = true;
     }
   }

@@ -22,9 +22,15 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.ReadableByteChannel;
 import java.security.GeneralSecurityException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
 import java.util.Properties;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.ShortBufferException;
 
 import com.google.common.base.Preconditions;
 import com.intel.chimera.crypto.Cipher;
@@ -77,7 +83,7 @@ public class PositionedCryptoInputStream extends CryptoInputStream {
       byte[] iv,
       long streamOffset) throws IOException {
     super(input, cipher, bufferSize, key, iv, streamOffset);
-    Utils.checkPositionedStreamCipher(cipher);
+    Utils.checkStreamCipher(cipher);
   }
 
   protected long getPos() throws IOException {
@@ -149,14 +155,24 @@ public class PositionedCryptoInputStream extends CryptoInputStream {
   private void decryptBuffer(CipherState state, ByteBuffer inBuffer, ByteBuffer outBuffer)
       throws IOException {
     int inputSize = inBuffer.remaining();
-    int n = state.getCipher().update(inBuffer, outBuffer);
+    int n;
+    try {
+      n = state.getCipher().update(inBuffer, outBuffer);
+    } catch (ShortBufferException e) {
+      throw new IOException(e);
+    }
     if (n < inputSize) {
       /**
        * Typically code will not get here. Cipher#update will consume all
        * input data and put result in outBuffer.
        * Cipher#doFinal will reset the cipher context.
        */
-      state.getCipher().doFinal(inBuffer, outBuffer);
+      try {
+        state.getCipher().doFinal(inBuffer, outBuffer);
+      } catch (ShortBufferException | IllegalBlockSizeException
+          | BadPaddingException e) {
+        throw new IOException(e);
+      }
       state.reset(true);
     }
   }
@@ -187,7 +203,11 @@ public class PositionedCryptoInputStream extends CryptoInputStream {
       throws IOException {
     final long counter = getCounter(position);
     Utils.calculateIV(getInitIV(), counter, iv);
-    state.getCipher().init(Cipher.DECRYPT_MODE, getKey(), iv);
+    try {
+      state.getCipher().init(Cipher.DECRYPT_MODE, getKey(), iv);
+    } catch (InvalidKeyException | InvalidAlgorithmParameterException e) {
+      throw new IOException(e);
+    }
     state.reset(false);
   }
 

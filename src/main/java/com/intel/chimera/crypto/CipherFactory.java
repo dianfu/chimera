@@ -47,7 +47,7 @@ public class CipherFactory {
    */
   public static Cipher getInstance(
       Properties props,
-      CipherTransformation transformation) throws IOException, GeneralSecurityException {
+      CipherTransformation transformation) throws GeneralSecurityException {
     List<Class<? extends Cipher>> klasses = getCipherClasses(props);
     Cipher cipher = null;
     if (klasses != null) {

@@ -58,6 +58,6 @@ public class PositionedCryptoOutputStream extends CryptoOutputStream {
       int bufferSize, byte[] key, byte[] iv, long streamOffset)
       throws IOException {
     super(output, cipher, bufferSize, key, iv, streamOffset);
-    Utils.checkPositionedStreamCipher(cipher);
+    Utils.checkStreamCipher(cipher);
   }
 }

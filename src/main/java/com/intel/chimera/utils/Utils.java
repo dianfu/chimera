@@ -28,7 +28,6 @@ import com.google.common.base.Preconditions;
 import com.intel.chimera.crypto.Cipher;
 import com.intel.chimera.crypto.CipherFactory;
 import com.intel.chimera.crypto.CipherTransformation;
-import com.intel.chimera.crypto.UnsupportedCipherException;
 import static com.intel.chimera.ConfigurationKeys.CHIMERA_CRYPTO_BUFFER_SIZE_DEFAULT;
 import static com.intel.chimera.ConfigurationKeys.CHIMERA_CRYPTO_BUFFER_SIZE_KEY;
 import static com.intel.chimera.ConfigurationKeys.CHIMERA_CRYPTO_CIPHER_CLASSES_DEFAULT;
@@ -158,16 +157,9 @@ public class Utils {
   }
 
   /** AES/CTR/NoPadding is required */
-  public static void checkStreamCipher(Cipher cipher) {
+  public static void checkStreamCipher(Cipher cipher) throws IOException {
     if (cipher.getTransformation() != CipherTransformation.AES_CTR_NOPADDING) {
-      throw new UnsupportedCipherException("AES/CTR/NoPadding is required");
-    }
-  }
-
-  /** AES/CTR/NoPadding is required */
-  public static void checkPositionedStreamCipher(Cipher cipher) {
-    if (cipher.getTransformation() != CipherTransformation.AES_CTR_NOPADDING) {
-      throw new UnsupportedCipherException("AES/CTR/NoPadding is required");
+      throw new IOException("AES/CTR/NoPadding is required");
     }
   }
 
