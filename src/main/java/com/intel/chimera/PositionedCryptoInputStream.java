@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.ReadableByteChannel;
+import java.security.GeneralSecurityException;
 import java.util.Properties;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -50,12 +51,12 @@ public class PositionedCryptoInputStream extends CryptoInputStream {
 
   public PositionedCryptoInputStream(Properties props, InputStream in,
       byte[] key, byte[] iv, long streamOffset) throws IOException {
-    this(in, CipherFactory.getInstance(props), Utils.getBufferSize(props), key, iv, streamOffset);
+    this(in, Utils.getCipherInstance(props), Utils.getBufferSize(props), key, iv, streamOffset);
   }
 
   public PositionedCryptoInputStream(Properties props, ReadableByteChannel in,
       byte[] key, byte[] iv, long streamOffset) throws IOException {
-    this(in, CipherFactory.getInstance(props), Utils.getBufferSize(props), key, iv, streamOffset);
+    this(in, Utils.getCipherInstance(props), Utils.getBufferSize(props), key, iv, streamOffset);
   }
 
   public PositionedCryptoInputStream(InputStream in, Cipher cipher,
@@ -194,8 +195,13 @@ public class PositionedCryptoInputStream extends CryptoInputStream {
   private CipherState getCipherState() throws IOException {
     CipherState state = cipherPool.poll();
     if (state == null) {
-      Cipher cipher = CipherFactory.getInstance(getCipher().getProperties(),
-          getCipher().getTransformation());
+      Cipher cipher;
+      try {
+        cipher = CipherFactory.getInstance(getCipher().getProperties(),
+            getCipher().getTransformation());
+      } catch (GeneralSecurityException e) {
+        throw new IOException(e);
+      }
       state = new CipherState(cipher);
     }
 

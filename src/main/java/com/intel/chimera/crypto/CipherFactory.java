@@ -47,29 +47,25 @@ public class CipherFactory {
    */
   public static Cipher getInstance(
       Properties props,
-      CipherTransformation transformation) throws IOException {
-    try {
-      List<Class<? extends Cipher>> klasses = getCipherClasses(props);
-      Cipher cipher = null;
-      if (klasses != null) {
-        for (Class<? extends Cipher> klass : klasses) {
-          try {
-            cipher = ReflectionUtils.newInstance(klass, props, transformation);
-            if(cipher != null) {
-              LOG.debug("Using cipher {} for transformation {}.", klass.getName(), transformation.getName());
-              break;
-            }
-          } catch (Exception e) {
-            LOG.error("Cipher {} is not available or transformation {} is not supported.",
-                klass.getName(), transformation.getName());
+      CipherTransformation transformation) throws IOException, GeneralSecurityException {
+    List<Class<? extends Cipher>> klasses = getCipherClasses(props);
+    Cipher cipher = null;
+    if (klasses != null) {
+      for (Class<? extends Cipher> klass : klasses) {
+        try {
+          cipher = ReflectionUtils.newInstance(klass, props, transformation);
+          if(cipher != null) {
+            LOG.debug("Using cipher {} for transformation {}.", klass.getName(), transformation.getName());
+            break;
           }
+        } catch (Exception e) {
+          LOG.error("Cipher {} is not available or transformation {} is not supported.",
+              klass.getName(), transformation.getName());
         }
       }
-
-      return (cipher == null) ? new JceCipher(props, transformation) : cipher;
-    } catch (GeneralSecurityException e) {
-      throw new IOException(e);
     }
+
+    return (cipher == null) ? new JceCipher(props, transformation) : cipher;
   }
 
   /**
@@ -79,7 +75,8 @@ public class CipherFactory {
    * @return Cipher the cipher object Null value will be returned if no
    *         cipher classes with transformation configured.
    */
-  public static Cipher getInstance() throws IOException {
+  public static Cipher getInstance() throws IOException,
+      GeneralSecurityException {
     return getInstance(new Properties());
   }
 
@@ -92,8 +89,8 @@ public class CipherFactory {
    * @return Cipher the cipher object Null value will be returned if no
    *         cipher classes with transformation configured.
    */
-  public static Cipher getInstance(Properties props)
-      throws IOException {
+  public static Cipher getInstance(Properties props) throws IOException,
+      GeneralSecurityException {
     return getInstance(props, Utils.getCripherTransformation(props));
   }
 

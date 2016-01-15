@@ -17,13 +17,16 @@
  */
 package com.intel.chimera.utils;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.security.GeneralSecurityException;
 import java.util.Enumeration;
 import java.util.Properties;
 
 import com.google.common.base.Preconditions;
 import com.intel.chimera.crypto.Cipher;
+import com.intel.chimera.crypto.CipherFactory;
 import com.intel.chimera.crypto.CipherTransformation;
 import com.intel.chimera.crypto.UnsupportedCipherException;
 import static com.intel.chimera.ConfigurationKeys.CHIMERA_CRYPTO_BUFFER_SIZE_DEFAULT;
@@ -209,6 +212,17 @@ public class Utils {
         counter >>>= 8;
       }
       IV[i] = (byte) sum;
+    }
+  }
+
+  /**
+   * Helper method to create a Cipher instance and throws only IOException
+   */
+  public static Cipher getCipherInstance(Properties props) throws IOException {
+    try {
+      return CipherFactory.getInstance(props);
+    } catch(GeneralSecurityException e) {
+      throw new IOException(e);
     }
   }
 }
