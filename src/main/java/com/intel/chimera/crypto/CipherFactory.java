@@ -24,7 +24,6 @@ import com.intel.chimera.utils.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.List;
 import java.util.Properties;
@@ -75,8 +74,7 @@ public class CipherFactory {
    * @return Cipher the cipher object Null value will be returned if no
    *         cipher classes with transformation configured.
    */
-  public static Cipher getInstance() throws IOException,
-      GeneralSecurityException {
+  public static Cipher getInstance() throws GeneralSecurityException {
     return getInstance(new Properties());
   }
 
@@ -89,8 +87,8 @@ public class CipherFactory {
    * @return Cipher the cipher object Null value will be returned if no
    *         cipher classes with transformation configured.
    */
-  public static Cipher getInstance(Properties props) throws IOException,
-      GeneralSecurityException {
+  public static Cipher getInstance(Properties props)
+      throws GeneralSecurityException {
     return getInstance(props, Utils.getCripherTransformation(props));
   }
 
