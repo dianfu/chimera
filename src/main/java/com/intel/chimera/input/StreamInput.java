@@ -37,24 +37,24 @@ public class StreamInput implements Input {
 
   @Override
   public int read(ByteBuffer dst) throws IOException {
-    int remaining = dst.remaining();
+    final int total = dst.remaining();
     final byte[] tmp = getBuf();
-    int total = 0;
-    final int toRead = remaining;
-    while (toRead > total) {
+    int read = 0;
+    int remaining = total;
+    while (remaining > 0) {
       final int n = in.read(tmp, 0, Math.min(remaining, bufferSize));
       if (n == -1) {
-        if (total == 0) {
-          total = -1;
+        if (read == 0) {
+          read = -1;
         }
         break;
       } else if (n > 0) {
         dst.put(tmp, 0, n);
-        total += n;
+        read += n;
         remaining -= n;
       }
     }
-    return total;
+    return read;
   }
 
   @Override
