@@ -155,25 +155,20 @@ public class PositionedCryptoInputStream extends CryptoInputStream {
   private void decryptBuffer(CipherState state, ByteBuffer inBuffer, ByteBuffer outBuffer)
       throws IOException {
     int inputSize = inBuffer.remaining();
-    int n;
     try {
-      n = state.getCipher().update(inBuffer, outBuffer);
-    } catch (ShortBufferException e) {
-      throw new IOException(e);
-    }
-    if (n < inputSize) {
-      /**
-       * Typically code will not get here. Cipher#update will consume all
-       * input data and put result in outBuffer.
-       * Cipher#doFinal will reset the cipher context.
-       */
-      try {
+      int n = state.getCipher().update(inBuffer, outBuffer);
+      if (n < inputSize) {
+        /**
+         * Typically code will not get here. Cipher#update will consume all
+         * input data and put result in outBuffer.
+         * Cipher#doFinal will reset the cipher context.
+         */
         state.getCipher().doFinal(inBuffer, outBuffer);
-      } catch (ShortBufferException | IllegalBlockSizeException
-          | BadPaddingException e) {
-        throw new IOException(e);
+        state.reset(true);
       }
-      state.reset(true);
+    } catch (ShortBufferException | IllegalBlockSizeException
+        | BadPaddingException e) {
+      throw new IOException(e);
     }
   }
 

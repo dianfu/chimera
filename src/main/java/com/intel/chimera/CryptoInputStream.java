@@ -457,25 +457,20 @@ public class CryptoInputStream extends InputStream implements
   protected void decryptBuffer(ByteBuffer out)
       throws IOException {
     int inputSize = inBuffer.remaining();
-    int n;
     try {
-      n = cipher.update(inBuffer, out);
-    } catch (ShortBufferException e) {
-      throw new IOException(e);
-    }
-    if (n < inputSize) {
-      /**
-       * Typically code will not get here. Cipher#update will consume all
-       * input data and put result in outBuffer.
-       * Cipher#doFinal will reset the cipher context.
-       */
-      try {
+      int n = cipher.update(inBuffer, out);
+      if (n < inputSize) {
+        /**
+         * Typically code will not get here. Cipher#update will consume all
+         * input data and put result in outBuffer.
+         * Cipher#doFinal will reset the cipher context.
+         */
         cipher.doFinal(inBuffer, outBuffer);
-      } catch (ShortBufferException | IllegalBlockSizeException
-          | BadPaddingException e) {
-        throw new IOException(e);
+        cipherReset = true;
       }
-      cipherReset = true;
+    } catch (ShortBufferException | IllegalBlockSizeException
+        | BadPaddingException e) {
+      throw new IOException(e);
     }
   }
 
