@@ -37,10 +37,11 @@ public class StreamInput implements Input {
 
   @Override
   public int read(ByteBuffer dst) throws IOException {
-    final int remaining = dst.remaining();
+    int remaining = dst.remaining();
     final byte[] tmp = getBuf();
     int total = 0;
-    while (remaining > total) {
+    final int toRead = remaining;
+    while (toRead > total) {
       final int n = in.read(tmp, 0, Math.min(remaining, bufferSize));
       if (n == -1) {
         if (total == 0) {
@@ -50,6 +51,7 @@ public class StreamInput implements Input {
       } else if (n > 0) {
         dst.put(tmp, 0, n);
         total += n;
+        remaining -= n;
       }
     }
     return total;
