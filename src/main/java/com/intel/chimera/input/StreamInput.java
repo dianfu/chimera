@@ -67,10 +67,30 @@ public class StreamInput implements Input {
   }
 
   @Override
+  public int read(long position, byte[] buffer, int offset, int length)
+      throws IOException {
+    throw new UnsupportedOperationException(
+        "Should override this method to provide positioned read capability");
+  }
+
+  @Override
+  public void readFully(long position, byte[] buffer, int offset, int length)
+      throws IOException {
+    throw new UnsupportedOperationException(
+        "Should override this method to provide positioned readFully capability");
+  }
+
+  @Override
+  public void seek(long pos) throws IOException {
+    throw new UnsupportedOperationException(
+        "Should override this method to provide seek capability");
+  }
+
+  @Override
   public void close() throws IOException {
     in.close();
   }
-  
+
   private byte[] getBuf() {
     if (buf == null) {
       buf = new byte[bufferSize];
